@@ -6,6 +6,7 @@ A minimal Windows tray application that adds two global hotkeys for Z-order wind
 |----------|-------------------------------------------------|
 | Alt+F1   | Bring the window under the mouse to the front   |
 | Alt+F3   | Send the window under the mouse to the back     |
+| Alt+Esc  | Close the window under the mouse                |
 
 The tray icon shows a "W". Double-click it to pause/resume. Right-click for the menu.
 

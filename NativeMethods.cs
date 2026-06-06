@@ -56,11 +56,16 @@ namespace WindowStacker
         public const uint MOD_NOREPEAT = 0x4000;
 
         // Virtual key codes
-        public const uint VK_F1 = 0x70;
-        public const uint VK_F3 = 0x72;
+        public const uint VK_F1     = 0x70;
+        public const uint VK_F3     = 0x72;
+        public const uint VK_ESCAPE = 0x1B;
 
-        // Window message for hotkeys
+        // Window messages
         public const int WM_HOTKEY = 0x0312;
+        public const uint WM_CLOSE  = 0x0010;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct POINT

@@ -50,5 +50,13 @@ namespace WindowStacker
 
             NativeMethods.SetWindowPos(hwnd, NativeMethods.HWND_BOTTOM, 0, 0, 0, 0, FLAGS);
         }
+
+        public static void CloseWindowUnderCursor()
+        {
+            IntPtr hwnd = GetWindowUnderCursor();
+            if (hwnd == IntPtr.Zero) return;
+
+            NativeMethods.PostMessage(hwnd, NativeMethods.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+        }
     }
 }

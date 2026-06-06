@@ -16,11 +16,12 @@ namespace WindowStacker
             _hotkeyWindow = new HotkeyWindow();
             _hotkeyWindow.BringForward += OnBringForward;
             _hotkeyWindow.SendBack     += OnSendBack;
+            _hotkeyWindow.CloseWindow  += OnCloseWindow;
 
             _trayIcon = new NotifyIcon
             {
                 Icon    = BuildTrayIcon(),
-                Text    = "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back",
+                Text    = "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back\nAlt+Esc: Close",
                 Visible = true,
                 ContextMenuStrip = BuildContextMenu()
             };
@@ -38,6 +39,11 @@ namespace WindowStacker
             if (_enabled) WindowZOrder.SendToBack();
         }
 
+        private void OnCloseWindow()
+        {
+            if (_enabled) WindowZOrder.CloseWindowUnderCursor();
+        }
+
         private void ToggleEnabled()
         {
             _enabled = !_enabled;
@@ -48,7 +54,7 @@ namespace WindowStacker
         {
             _trayIcon.Icon = BuildTrayIcon();
             _trayIcon.Text = _enabled
-                ? "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back"
+                ? "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back\nAlt+Esc: Close"
                 : "WindowStacker (paused)\nDouble-click to resume";
 
             // Refresh the menu item label
@@ -110,6 +116,7 @@ namespace WindowStacker
 
             _hotkeyWindow.BringForward -= OnBringForward;
             _hotkeyWindow.SendBack     -= OnSendBack;
+            _hotkeyWindow.CloseWindow  -= OnCloseWindow;
             _hotkeyWindow.Dispose();
 
             _trayIcon.Visible = false;
