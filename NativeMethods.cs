@@ -64,6 +64,47 @@ namespace WindowStacker
         public const int WM_HOTKEY = 0x0312;
         public const uint WM_CLOSE  = 0x0010;
 
+        public const int WM_KEYDOWN    = 0x0100;
+        public const int WM_SYSKEYDOWN = 0x0104;
+        public const int WM_MOUSEMOVE   = 0x0200;
+        public const int WM_LBUTTONDOWN = 0x0201;
+        public const int WM_RBUTTONDOWN = 0x0204;
+        public const int WM_MBUTTONDOWN = 0x0207;
+        public const int WM_XBUTTONDOWN = 0x020B;
+
+        // Low-level hook types
+        public const int WH_MOUSE_LL    = 14;
+        public const int WH_KEYBOARD_LL = 13;
+
+        public const uint VK_MENU = 0x12; // Alt key
+
+        public delegate IntPtr LowLevelHookProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr SetWindowsHookEx(int idHook, LowLevelHookProc lpfn, IntPtr hMod, uint dwThreadId);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr GetModuleHandle(string? lpModuleName);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetForegroundWindow();
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct KBDLLHOOKSTRUCT
+        {
+            public uint vkCode;
+            public uint scanCode;
+            public uint flags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
+
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
