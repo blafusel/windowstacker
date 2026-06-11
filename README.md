@@ -1,14 +1,15 @@
 # WindowStacker
 
-A minimal Windows tray application that adds two global hotkeys for Z-order window management.
+A minimal Windows tray application for Z-order window management via global hotkeys and mouse gestures.
 
-| Hotkey   | Action                                          |
-|----------|-------------------------------------------------|
-| Alt+F1   | Bring the window under the mouse to the front   |
-| Alt+F3   | Send the window under the mouse to the back     |
-| Alt+Esc  | Close the window under the mouse                |
+| Input            | Action                                                      |
+|------------------|-------------------------------------------------------------|
+| Alt+F1           | Bring the window under the mouse to the front               |
+| Alt+F3           | Send the window under the mouse to the back                 |
+| Alt+Esc          | Close the window under the mouse (or active window if keyboard was last used) |
+| Hold LMB + RMB   | Send the currently active window to the back                |
 
-The tray icon shows a "W". Double-click it to pause/resume. Right-click for the menu.
+The tray icon shows a "W". Left-click to pause/resume. Right-click for the menu.
 
 ---
 

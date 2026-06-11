@@ -31,7 +31,7 @@ namespace WindowStacker
             _trayIcon = new NotifyIcon
             {
                 Icon    = BuildTrayIcon(),
-                Text    = "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back\nAlt+Esc: Close",
+                Text    = "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back\nAlt+Esc: Close\nLMB+RMB: Send active to back",
                 Visible = true,
                 ContextMenuStrip = BuildContextMenu()
             };
@@ -121,7 +121,7 @@ namespace WindowStacker
         {
             _trayIcon.Icon = BuildTrayIcon();
             _trayIcon.Text = _enabled
-                ? "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back\nAlt+Esc: Close"
+                ? "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back\nAlt+Esc: Close\nLMB+RMB: Send active to back"
                 : "WindowStacker (disabled)\nLeft-click to enable";
 
             if (_trayIcon.ContextMenuStrip?.Items[0] is ToolStripMenuItem item)
