@@ -59,6 +59,14 @@ namespace WindowStacker
             NativeMethods.PostMessage(hwnd, NativeMethods.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
         }
 
+        public static void SendActiveWindowToBack()
+        {
+            IntPtr hwnd = NativeMethods.GetForegroundWindow();
+            if (hwnd == IntPtr.Zero) return;
+
+            NativeMethods.SetWindowPos(hwnd, NativeMethods.HWND_BOTTOM, 0, 0, 0, 0, FLAGS);
+        }
+
         public static void CloseActiveWindow()
         {
             IntPtr hwnd = NativeMethods.GetForegroundWindow();

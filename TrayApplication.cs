@@ -15,6 +15,7 @@ namespace WindowStacker
 
         // Input tracking for smart Alt+Esc: true = last action was mouse move
         private bool _lastActionWasMouseMove;
+        private bool _lmbDown;
         private IntPtr _mouseHook;
         private IntPtr _keyboardHook;
         // Keep delegates alive to prevent GC collection while hooks are active
@@ -56,10 +57,28 @@ namespace WindowStacker
             {
                 int msg = wParam.ToInt32();
                 if (msg == NativeMethods.WM_MOUSEMOVE)
+                {
                     _lastActionWasMouseMove = true;
-                else if (msg == NativeMethods.WM_LBUTTONDOWN || msg == NativeMethods.WM_RBUTTONDOWN ||
-                         msg == NativeMethods.WM_MBUTTONDOWN || msg == NativeMethods.WM_XBUTTONDOWN)
+                }
+                else if (msg == NativeMethods.WM_LBUTTONDOWN)
+                {
+                    _lmbDown = true;
                     _lastActionWasMouseMove = false;
+                }
+                else if (msg == NativeMethods.WM_LBUTTONUP)
+                {
+                    _lmbDown = false;
+                }
+                else if (msg == NativeMethods.WM_RBUTTONDOWN)
+                {
+                    if (_enabled && _lmbDown)
+                        WindowZOrder.SendActiveWindowToBack();
+                    _lastActionWasMouseMove = false;
+                }
+                else if (msg == NativeMethods.WM_MBUTTONDOWN || msg == NativeMethods.WM_XBUTTONDOWN)
+                {
+                    _lastActionWasMouseMove = false;
+                }
             }
             return NativeMethods.CallNextHookEx(_mouseHook, nCode, wParam, lParam);
         }
