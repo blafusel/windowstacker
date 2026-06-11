@@ -68,7 +68,6 @@ namespace WindowStacker
         public const int WM_SYSKEYDOWN = 0x0104;
         public const int WM_MOUSEMOVE   = 0x0200;
         public const int WM_LBUTTONDOWN = 0x0201;
-        public const int WM_LBUTTONUP   = 0x0202;
         public const int WM_RBUTTONDOWN = 0x0204;
         public const int WM_MBUTTONDOWN = 0x0207;
         public const int WM_XBUTTONDOWN = 0x020B;
@@ -95,6 +94,11 @@ namespace WindowStacker
 
         [DllImport("user32.dll")]
         public static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        public static extern short GetAsyncKeyState(int vKey);
+
+        public const int VK_LBUTTON = 0x01;
 
         [StructLayout(LayoutKind.Sequential)]
         public struct KBDLLHOOKSTRUCT
