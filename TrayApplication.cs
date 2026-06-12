@@ -11,10 +11,12 @@ namespace WindowStacker
         private readonly NotifyIcon _trayIcon;
         private readonly HotkeyWindow _hotkeyWindow;
         private bool _enabled = true;
+        private bool _ctrlRmbEnabled = true;
         private bool _disposed;
 
         // Input tracking for smart Alt+Esc: true = last action was mouse move
         private bool _lastActionWasMouseMove;
+        private bool _suppressRmbUp;
         private IntPtr _mouseHook;
         private IntPtr _keyboardHook;
         // Keep delegates alive to prevent GC collection while hooks are active
@@ -31,7 +33,7 @@ namespace WindowStacker
             _trayIcon = new NotifyIcon
             {
                 Icon    = BuildTrayIcon(),
-                Text    = "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back\nAlt+Esc: Close\nLMB+RMB: Send active to back",
+                Text    = "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back\nAlt+Esc: Close\nCtrl+RMB: Send active to back",
                 Visible = true,
                 ContextMenuStrip = BuildContextMenu()
             };
@@ -61,11 +63,20 @@ namespace WindowStacker
                 }
                 else if (msg == NativeMethods.WM_RBUTTONDOWN)
                 {
-                    // High bit set = physically held at this instant; avoids stale state from synthetic UP events
-                    bool lmbHeld = (NativeMethods.GetAsyncKeyState(NativeMethods.VK_LBUTTON) & 0x8000) != 0;
-                    if (_enabled && lmbHeld)
-                        WindowZOrder.SendActiveWindowToBack();
+                    bool ctrlHeld = (NativeMethods.GetAsyncKeyState(NativeMethods.VK_CONTROL) & 0x8000) != 0;
+                    if (_enabled && _ctrlRmbEnabled && ctrlHeld)
+                    {
+                        WindowZOrder.SendToBack();
+                        _suppressRmbUp = true;
+                        _lastActionWasMouseMove = false;
+                        return (IntPtr)1;
+                    }
                     _lastActionWasMouseMove = false;
+                }
+                else if (msg == NativeMethods.WM_RBUTTONUP && _suppressRmbUp)
+                {
+                    _suppressRmbUp = false;
+                    return (IntPtr)1;
                 }
                 else if (msg == NativeMethods.WM_LBUTTONDOWN || msg == NativeMethods.WM_MBUTTONDOWN ||
                          msg == NativeMethods.WM_XBUTTONDOWN)
@@ -121,7 +132,7 @@ namespace WindowStacker
         {
             _trayIcon.Icon = BuildTrayIcon();
             _trayIcon.Text = _enabled
-                ? "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back\nAlt+Esc: Close\nLMB+RMB: Send active to back"
+                ? "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back\nAlt+Esc: Close\nCtrl+RMB: Send active to back"
                 : "WindowStacker (disabled)\nLeft-click to enable";
 
             if (_trayIcon.ContextMenuStrip?.Items[0] is ToolStripMenuItem item)
@@ -135,6 +146,13 @@ namespace WindowStacker
             var toggleItem = new ToolStripMenuItem("Disable");
             toggleItem.Click += (_, _) => ToggleEnabled();
 
+            var ctrlRmbItem = new ToolStripMenuItem("Ctrl+RMB: Send to back")
+            {
+                Checked = _ctrlRmbEnabled,
+                CheckOnClick = true
+            };
+            ctrlRmbItem.Click += (_, _) => _ctrlRmbEnabled = ctrlRmbItem.Checked;
+
             var exitItem = new ToolStripMenuItem("Exit");
             exitItem.Click += (_, _) =>
             {
@@ -143,6 +161,8 @@ namespace WindowStacker
             };
 
             menu.Items.Add(toggleItem);
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(ctrlRmbItem);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(exitItem);
 

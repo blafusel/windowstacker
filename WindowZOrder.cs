@@ -10,6 +10,13 @@ namespace WindowStacker
             NativeMethods.SWP_NOACTIVATE |
             NativeMethods.SWP_ASYNCWINDOWPOS;
 
+        // SendActiveWindowToBack must NOT use SWP_NOACTIVATE — otherwise GetForegroundWindow
+        // keeps returning the same window after it's been sent behind, causing repeated calls to no-op.
+        private static readonly uint FLAGS_SEND_BACK =
+            NativeMethods.SWP_NOMOVE |
+            NativeMethods.SWP_NOSIZE |
+            NativeMethods.SWP_ASYNCWINDOWPOS;
+
         /// <summary>
         /// Returns the top-level window under the current mouse cursor,
         /// or IntPtr.Zero if none is found or the window is not usable.
@@ -64,7 +71,7 @@ namespace WindowStacker
             IntPtr hwnd = NativeMethods.GetForegroundWindow();
             if (hwnd == IntPtr.Zero) return;
 
-            NativeMethods.SetWindowPos(hwnd, NativeMethods.HWND_BOTTOM, 0, 0, 0, 0, FLAGS);
+            NativeMethods.SetWindowPos(hwnd, NativeMethods.HWND_BOTTOM, 0, 0, 0, 0, FLAGS_SEND_BACK);
         }
 
         public static void CloseActiveWindow()
