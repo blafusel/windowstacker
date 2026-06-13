@@ -10,8 +10,8 @@ namespace WindowStacker
             NativeMethods.SWP_NOACTIVATE |
             NativeMethods.SWP_ASYNCWINDOWPOS;
 
-        // SendActiveWindowToBack must NOT use SWP_NOACTIVATE — otherwise GetForegroundWindow
-        // keeps returning the same window after it's been sent behind, causing repeated calls to no-op.
+        // Send-to-back must NOT use SWP_NOACTIVATE — without it Windows auto-activates the next
+        // Z-order window, so the newly-revealed window can receive input immediately.
         private static readonly uint FLAGS_SEND_BACK =
             NativeMethods.SWP_NOMOVE |
             NativeMethods.SWP_NOSIZE |
@@ -55,7 +55,23 @@ namespace WindowStacker
             IntPtr hwnd = GetWindowUnderCursor();
             if (hwnd == IntPtr.Zero) return;
 
-            NativeMethods.SetWindowPos(hwnd, NativeMethods.HWND_BOTTOM, 0, 0, 0, 0, FLAGS);
+            // Capture the window directly below before the Z-order changes.
+            IntPtr next = NativeMethods.GetWindow(hwnd, NativeMethods.GW_HWNDNEXT);
+
+            NativeMethods.SetWindowPos(hwnd, NativeMethods.HWND_BOTTOM, 0, 0, 0, 0, FLAGS_SEND_BACK);
+
+            if (next != IntPtr.Zero)
+            {
+                // Activate the revealed window so it can receive input immediately.
+                NativeMethods.SetForegroundWindow(next);
+
+                // Poke with SWP_FRAMECHANGED to send WM_WINDOWPOSCHANGED — wakes
+                // Chromium's occlusion tracker so the compositor stops throttling.
+                NativeMethods.SetWindowPos(next, IntPtr.Zero, 0, 0, 0, 0,
+                    NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE |
+                    NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE |
+                    NativeMethods.SWP_FRAMECHANGED | NativeMethods.SWP_ASYNCWINDOWPOS);
+            }
         }
 
         public static void CloseWindowUnderCursor()

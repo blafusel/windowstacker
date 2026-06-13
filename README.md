@@ -2,16 +2,16 @@
 
 A minimal Windows tray application for Z-order window management via global hotkeys and mouse gestures.
 
-| Input            | Action                                                      |
-|------------------|-------------------------------------------------------------|
-| Alt+F1           | Bring the window under the mouse to the front               |
-| Alt+F3           | Send the window under the mouse to the back                 |
-| Alt+Esc          | Close the window under the mouse (or active window if keyboard was last used) |
-| Ctrl+RMB         | Send the window under the mouse to the back                 |
+| Input            | Action                                                      | Default |
+|------------------|-------------------------------------------------------------|---------|
+| Alt+F1           | Bring the window under the mouse to the front               | Off     |
+| Alt+F3           | Send the window under the mouse to the back                 | Off     |
+| Alt+Esc          | Close the window under the mouse (or active window if keyboard was last used) | On |
+| Ctrl+RMB         | Send the window under the mouse to the back                 | On      |
 
 The tray icon shows a "W". Left-click to pause/resume. Right-click for the menu.
 
-Individual features can be toggled from the tray menu. Ctrl+RMB can be enabled or disabled independently.
+Individual features can be toggled from the tray menu. **Alt+F1 and Alt+F3 are off by default** — they have known reliability issues with some applications (see Known limitations) and need more work before being on by default.
 
 ---
 
@@ -55,9 +55,14 @@ That is all. Windows will launch it silently on login.
 
 ## Known limitations
 
-- **Alt+F3** is used by Firefox (find previous match) and a few other apps. Because the
-  hotkey is registered globally, those apps will stop receiving it while WindowStacker is
-  running. Use the tray "Pause" option or exit if you need it back temporarily.
+- **Alt+F1 and Alt+F3 are experimental and off by default.** They have known reliability
+  issues with GPU-composited windows (e.g. Chromium-based browsers): the revealed window
+  may not repaint or respond correctly in all cases. Enable them from the tray menu if you
+  want to try them, but expect rough edges.
+
+- **Alt+F3** is also used by Firefox (find previous match) and a few other apps. Because
+  the hotkey is registered globally, those apps will stop receiving it while the option is
+  enabled in WindowStacker.
 
 - `SetWindowPos` with `HWND_BOTTOM` does not work on windows that belong to elevated
   (administrator-level) processes when WindowStacker itself is running at normal privilege.

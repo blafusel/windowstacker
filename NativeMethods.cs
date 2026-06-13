@@ -97,6 +97,17 @@ namespace WindowStacker
         public static extern IntPtr GetForegroundWindow();
 
         [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+        public const uint GW_HWNDNEXT = 2;
+        public const uint SWP_NOZORDER      = 0x0004;
+        public const uint SWP_FRAMECHANGED  = 0x0020;
+
+        [DllImport("user32.dll")]
         public static extern short GetAsyncKeyState(int vKey);
 
         public const int VK_LBUTTON  = 0x01;

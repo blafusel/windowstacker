@@ -33,7 +33,7 @@ namespace WindowStacker
             _trayIcon = new NotifyIcon
             {
                 Icon    = BuildTrayIcon(),
-                Text    = "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back\nAlt+Esc: Close\nCtrl+RMB: Send active to back",
+                Text    = "WindowStacker\nAlt+Esc: Close\nCtrl+RMB: Send active to back",
                 Visible = true,
                 ContextMenuStrip = BuildContextMenu()
             };
@@ -132,7 +132,7 @@ namespace WindowStacker
         {
             _trayIcon.Icon = BuildTrayIcon();
             _trayIcon.Text = _enabled
-                ? "WindowStacker\nAlt+F1: Bring forward\nAlt+F3: Send back\nAlt+Esc: Close\nCtrl+RMB: Send active to back"
+                ? "WindowStacker\nAlt+Esc: Close\nCtrl+RMB: Send active to back"
                 : "WindowStacker (disabled)\nLeft-click to enable";
 
             if (_trayIcon.ContextMenuStrip?.Items[0] is ToolStripMenuItem item)
@@ -145,6 +145,38 @@ namespace WindowStacker
 
             var toggleItem = new ToolStripMenuItem("Disable");
             toggleItem.Click += (_, _) => ToggleEnabled();
+
+            var f1Item = new ToolStripMenuItem("Alt+F1: Bring forward")
+            {
+                Checked = false,
+                CheckOnClick = true
+            };
+            f1Item.Click += (_, _) =>
+            {
+                if (!_hotkeyWindow.SetF1Enabled(f1Item.Checked))
+                {
+                    f1Item.Checked = false;
+                    MessageBox.Show(
+                        "Failed to register Alt+F1.\nAnother application may be using it.",
+                        "WindowStacker", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            };
+
+            var f3Item = new ToolStripMenuItem("Alt+F3: Send back")
+            {
+                Checked = false,
+                CheckOnClick = true
+            };
+            f3Item.Click += (_, _) =>
+            {
+                if (!_hotkeyWindow.SetF3Enabled(f3Item.Checked))
+                {
+                    f3Item.Checked = false;
+                    MessageBox.Show(
+                        "Failed to register Alt+F3.\nAnother application may be using it.",
+                        "WindowStacker", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            };
 
             var ctrlRmbItem = new ToolStripMenuItem("Ctrl+RMB: Send to back")
             {
@@ -162,6 +194,8 @@ namespace WindowStacker
 
             menu.Items.Add(toggleItem);
             menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(f1Item);
+            menu.Items.Add(f3Item);
             menu.Items.Add(ctrlRmbItem);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(exitItem);

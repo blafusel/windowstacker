@@ -3,10 +3,6 @@ using System.Windows.Forms;
 
 namespace WindowStacker
 {
-    /// <summary>
-    /// Invisible window used solely to receive WM_HOTKEY messages.
-    /// WinForms needs a real HWND to pass to RegisterHotKey.
-    /// </summary>
     internal class HotkeyWindow : NativeWindow, IDisposable
     {
         private const int HOTKEY_BRING_FORWARD = 1;
@@ -17,59 +13,72 @@ namespace WindowStacker
         public event Action? SendBack;
         public event Action? CloseWindow;
 
-        private bool _registered;
+        private bool _f1Registered;
+        private bool _f3Registered;
+        private bool _escRegistered;
         private bool _disposed;
 
         public HotkeyWindow()
         {
-            // Create a minimal hidden window
             var cp = new CreateParams
             {
                 Caption = "WindowStackerHotkeyReceiver",
-                // WS_EX_TOOLWINDOW keeps it out of the taskbar and alt-tab
-                ExStyle = 0x00000080
+                ExStyle = 0x00000080  // WS_EX_TOOLWINDOW
             };
             CreateHandle(cp);
-            RegisterHotkeys();
-        }
 
-        private void RegisterHotkeys()
-        {
-            bool f1Ok  = NativeMethods.RegisterHotKey(
-                Handle,
-                HOTKEY_BRING_FORWARD,
-                NativeMethods.MOD_ALT | NativeMethods.MOD_NOREPEAT,
-                NativeMethods.VK_F1);
-
-            bool f3Ok  = NativeMethods.RegisterHotKey(
-                Handle,
-                HOTKEY_SEND_BACK,
-                NativeMethods.MOD_ALT | NativeMethods.MOD_NOREPEAT,
-                NativeMethods.VK_F3);
-
-            // MOD_ALT alone on VK_ESCAPE overrides the Windows/PowerToys Alt+Esc system hotkey.
-            // MOD_NOREPEAT intentionally omitted so the registration doesn't silently fail on
-            // systems where that flag conflicts with the system hook for this key.
-            bool escOk = NativeMethods.RegisterHotKey(
+            _escRegistered = NativeMethods.RegisterHotKey(
                 Handle,
                 HOTKEY_CLOSE_WINDOW,
                 NativeMethods.MOD_ALT,
                 NativeMethods.VK_ESCAPE);
 
-            if (!f1Ok || !f3Ok || !escOk)
-            {
+            if (!_escRegistered)
                 MessageBox.Show(
-                    "Failed to register one or more hotkeys.\n\n" +
-                    $"Alt+F1:  {(f1Ok  ? "OK" : "FAILED")}\n" +
-                    $"Alt+F3:  {(f3Ok  ? "OK" : "FAILED")}\n" +
-                    $"Alt+Esc: {(escOk ? "OK" : "FAILED")}\n\n" +
-                    "Another application may be using these shortcuts.",
+                    "Failed to register Alt+Esc.\nAnother application may be using it.",
                     "WindowStacker",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
-            }
+        }
 
-            _registered = f1Ok || f3Ok || escOk;
+        public bool SetF1Enabled(bool enabled)
+        {
+            if (enabled == _f1Registered) return true;
+            if (enabled)
+            {
+                _f1Registered = NativeMethods.RegisterHotKey(
+                    Handle,
+                    HOTKEY_BRING_FORWARD,
+                    NativeMethods.MOD_ALT | NativeMethods.MOD_NOREPEAT,
+                    NativeMethods.VK_F1);
+                return _f1Registered;
+            }
+            else
+            {
+                NativeMethods.UnregisterHotKey(Handle, HOTKEY_BRING_FORWARD);
+                _f1Registered = false;
+                return true;
+            }
+        }
+
+        public bool SetF3Enabled(bool enabled)
+        {
+            if (enabled == _f3Registered) return true;
+            if (enabled)
+            {
+                _f3Registered = NativeMethods.RegisterHotKey(
+                    Handle,
+                    HOTKEY_SEND_BACK,
+                    NativeMethods.MOD_ALT | NativeMethods.MOD_NOREPEAT,
+                    NativeMethods.VK_F3);
+                return _f3Registered;
+            }
+            else
+            {
+                NativeMethods.UnregisterHotKey(Handle, HOTKEY_SEND_BACK);
+                _f3Registered = false;
+                return true;
+            }
         }
 
         protected override void WndProc(ref Message m)
@@ -79,18 +88,11 @@ namespace WindowStacker
                 int id = m.WParam.ToInt32();
                 switch (id)
                 {
-                    case HOTKEY_BRING_FORWARD:
-                        BringForward?.Invoke();
-                        return;
-                    case HOTKEY_SEND_BACK:
-                        SendBack?.Invoke();
-                        return;
-                    case HOTKEY_CLOSE_WINDOW:
-                        CloseWindow?.Invoke();
-                        return;
+                    case HOTKEY_BRING_FORWARD: BringForward?.Invoke(); return;
+                    case HOTKEY_SEND_BACK:     SendBack?.Invoke();     return;
+                    case HOTKEY_CLOSE_WINDOW:  CloseWindow?.Invoke();  return;
                 }
             }
-
             base.WndProc(ref m);
         }
 
@@ -99,11 +101,11 @@ namespace WindowStacker
             if (_disposed) return;
             _disposed = true;
 
-            if (_registered && Handle != IntPtr.Zero)
+            if (Handle != IntPtr.Zero)
             {
-                NativeMethods.UnregisterHotKey(Handle, HOTKEY_BRING_FORWARD);
-                NativeMethods.UnregisterHotKey(Handle, HOTKEY_SEND_BACK);
-                NativeMethods.UnregisterHotKey(Handle, HOTKEY_CLOSE_WINDOW);
+                if (_f1Registered)  NativeMethods.UnregisterHotKey(Handle, HOTKEY_BRING_FORWARD);
+                if (_f3Registered)  NativeMethods.UnregisterHotKey(Handle, HOTKEY_SEND_BACK);
+                if (_escRegistered) NativeMethods.UnregisterHotKey(Handle, HOTKEY_CLOSE_WINDOW);
             }
 
             DestroyHandle();
